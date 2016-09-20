@@ -7,7 +7,6 @@ import (
 	"github.com/op/go-logging"
 	"strconv"
 	"encoding/json"
-	"go/doc"
 )
 
 var myLogger = logging.MustGetLogger("digital_im")
@@ -192,12 +191,12 @@ func createSugesstionsTable(stub *shim.ChaincodeStub) error {
 }
 
 type Payments struct {
-	Borrower	string `json:"borrower"`
-	PaymentDate	int64  `json:"paymentDate"`
-	Interest	int64  `json:"interest"`
-	Principal	int64  `json:"principal"`
-	Penalty		int64  `json:"penalty"`
-	Fees		int64  `json:"fees"`
+	Borrower    string `json:"borrower"`
+	PaymentDate int64  `json:"paymentDate"`
+	Interest    int64  `json:"interest"`
+	Principal   int64  `json:"principal"`
+	Penalty     int64  `json:"penalty"`
+	Fees        int64  `json:"fees"`
 }
 
 func createPaymentsTable(stub *shim.ChaincodeStub) error {
@@ -311,51 +310,51 @@ func (t *SyndicatedLoanManagement) createContract(stub *shim.ChaincodeStub, args
 	Borrower := args[0]
 	BorrowerContact := args[1]
 	Purpose := args[2]
-	LoanAmount, err := strconv.ParseInt(args[3],10, 64)
-	InterestRate, err := strconv.ParseInt(args[4],10, 64)
-	LeadBankCharge, err := strconv.ParseInt(args[5],10, 64)
-	ProcessingFees, err := strconv.ParseInt(args[6],10, 64)
-	Tranch1Date, err := strconv.ParseInt(args[7],10, 64)
-	Tranch1Amount, err := strconv.ParseInt(args[8],10, 64)
+	LoanAmount, err := strconv.ParseInt(args[3], 10, 64)
+	InterestRate, err := strconv.ParseInt(args[4], 10, 64)
+	LeadBankCharge, err := strconv.ParseInt(args[5], 10, 64)
+	ProcessingFees, err := strconv.ParseInt(args[6], 10, 64)
+	Tranch1Date, err := strconv.ParseInt(args[7], 10, 64)
+	Tranch1Amount, err := strconv.ParseInt(args[8], 10, 64)
 	Tranch1Comment := args[9]
-	Tranch2Date, err := strconv.ParseInt(args[10],10, 64)
-	Tranch2Amount, err := strconv.ParseInt(args[12],10, 64)
+	Tranch2Date, err := strconv.ParseInt(args[10], 10, 64)
+	Tranch2Amount, err := strconv.ParseInt(args[12], 10, 64)
 	Tranch2Comment := args[12]
-	PrepaymentCharges, err := strconv.ParseInt(args[13],10, 64)
+	PrepaymentCharges, err := strconv.ParseInt(args[13], 10, 64)
 	PhysicalInspection := args[14]
 	Lender1Name := args[15]
-	Lender1Share, err := strconv.ParseInt(args[16],10, 64)
-	Lender1SharePercent, err := strconv.ParseInt(args[17],10, 64)
+	Lender1Share, err := strconv.ParseInt(args[16], 10, 64)
+	Lender1SharePercent, err := strconv.ParseInt(args[17], 10, 64)
 	Lender1EditAcceptanceStatus := args[18]
 	Lender2Name := args[19]
-	Lender2Share, err := strconv.ParseInt(args[20],10, 64)
-	Lender2SharePercent, err := strconv.ParseInt(args[21],10, 64)
+	Lender2Share, err := strconv.ParseInt(args[20], 10, 64)
+	Lender2SharePercent, err := strconv.ParseInt(args[21], 10, 64)
 	Lender2EditAcceptanceStatus := args[22]
 	Lender3Name := args[23]
-	Lender3Share, err := strconv.ParseInt(args[24],10, 64)
-	Lender3SharePercent, err := strconv.ParseInt(args[25],10, 64)
+	Lender3Share, err := strconv.ParseInt(args[24], 10, 64)
+	Lender3SharePercent, err := strconv.ParseInt(args[25], 10, 64)
 	Lender3EditAcceptanceStatus := args[26]
 	Lender4Name := args[27]
-	Lender4Share, err := strconv.ParseInt(args[28],10, 64)
-	Lender4SharePercent, err := strconv.ParseInt(args[29],10, 64)
+	Lender4Share, err := strconv.ParseInt(args[28], 10, 64)
+	Lender4SharePercent, err := strconv.ParseInt(args[29], 10, 64)
 	Lender4EditAcceptanceStatus := args[30]
-	Penalty30Days, err := strconv.ParseInt(args[31],10, 64)
-	Penalty45Days, err := strconv.ParseInt(args[32],10, 64)
-	Penalty90Days, err := strconv.ParseInt(args[33],10, 64)
-	PaySchedule1RecordDate, err := strconv.ParseInt(args[34],10, 64)
-	PaySchedule1Amount, err := strconv.ParseInt(args[35],10, 64)
+	Penalty30Days, err := strconv.ParseInt(args[31], 10, 64)
+	Penalty45Days, err := strconv.ParseInt(args[32], 10, 64)
+	Penalty90Days, err := strconv.ParseInt(args[33], 10, 64)
+	PaySchedule1RecordDate, err := strconv.ParseInt(args[34], 10, 64)
+	PaySchedule1Amount, err := strconv.ParseInt(args[35], 10, 64)
 	PaySchedule1Status := args[36]
-	PaySchedule2RecordDate, err := strconv.ParseInt(args[37],10, 64)
-	PaySchedule2Amount, err := strconv.ParseInt(args[38],10, 64)
+	PaySchedule2RecordDate, err := strconv.ParseInt(args[37], 10, 64)
+	PaySchedule2Amount, err := strconv.ParseInt(args[38], 10, 64)
 	PaySchedule2Status := args[39]
-	PaySchedule3RecordDate, err := strconv.ParseInt(args[40],10, 64)
-	PaySchedule3Amount, err := strconv.ParseInt(args[41],10, 64)
+	PaySchedule3RecordDate, err := strconv.ParseInt(args[40], 10, 64)
+	PaySchedule3Amount, err := strconv.ParseInt(args[41], 10, 64)
 	PaySchedule3Status := args[42]
-	PaySchedule4RecordDate, err := strconv.ParseInt(args[43],10, 64)
-	PaySchedule4Amount, err := strconv.ParseInt(args[44],10, 64)
+	PaySchedule4RecordDate, err := strconv.ParseInt(args[43], 10, 64)
+	PaySchedule4Amount, err := strconv.ParseInt(args[44], 10, 64)
 	PaySchedule4Status := args[45]
-	PaySchedule5RecordDate, err := strconv.ParseInt(args[46],10, 64)
-	PaySchedule5Amount, err := strconv.ParseInt(args[47],10, 64)
+	PaySchedule5RecordDate, err := strconv.ParseInt(args[46], 10, 64)
+	PaySchedule5Amount, err := strconv.ParseInt(args[47], 10, 64)
 	PaySchedule5Status := args[48]
 	AgreementFreeFlow := args[49]
 	ContractStatus := args[50]
@@ -497,7 +496,7 @@ func (t *SyndicatedLoanManagement) addSuggestion(stub *shim.ChaincodeStub, args 
 	WhatValue := args[2]
 	Action := args[3]
 	Comment := args[4]
-	Date, err := strconv.ParseInt(args[5],10, 64)
+	Date, err := strconv.ParseInt(args[5], 10, 64)
 
 	var columns []*shim.Column
 	col1 := shim.Column{Value: &shim.Column_String_{String_: LenderName}}
@@ -513,7 +512,6 @@ func (t *SyndicatedLoanManagement) addSuggestion(stub *shim.ChaincodeStub, args 
 	columns = append(columns, &col4)
 	columns = append(columns, &col5)
 	columns = append(columns, &col6)
-
 
 	row := shim.Row{Columns: columns}
 	ok, err := stub.InsertRow("Suggestions", row)
@@ -618,7 +616,7 @@ func (t *SyndicatedLoanManagement) getContractDetails(stub *shim.ChaincodeStub, 
 	if err != nil {
 		return nil, fmt.Errorf("getContractDetails operation failed. Error marshaling JSON: %s", err)
 	}
-	return jsonRows,nil
+	return jsonRows, nil
 }
 
 func (t *SyndicatedLoanManagement) getSuggestions(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
@@ -666,7 +664,7 @@ func (t *SyndicatedLoanManagement) getSuggestions(stub *shim.ChaincodeStub, args
 	if err != nil {
 		return nil, fmt.Errorf("getSuggestions operation failed. Error marshaling JSON: %s", err)
 	}
-	return jsonRows,nil
+	return jsonRows, nil
 }
 
 func main() {
@@ -675,7 +673,6 @@ func main() {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
 }
-
 
 
 
