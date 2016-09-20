@@ -486,6 +486,201 @@ func (t *SyndicatedLoanManagement) createContract(stub *shim.ChaincodeStub, args
 	return nil, nil
 }
 
+func (t *SyndicatedLoanManagement) updateContract(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	myLogger.Info("In update contract -------->")
+	if len(args) < 54 {
+		return nil, errors.New("update contract failed. Must include 54 column values")
+	}
+	borrower := args[0]
+
+	var columnsg []shim.Column
+	colg1 := shim.Column{Value: &shim.Column_String_{String_: borrower}}
+	columnsg = append(columnsg, colg1)
+	myLogger.Info("Querying  Contract table-------->")
+	rowg, err := stub.GetRow("Contract", columnsg)
+	if err != nil {
+		return nil, fmt.Errorf("getContractDetails operation failed. %s", err)
+	}
+	rowg.GetColumns()
+	Borrower := args[0]
+	BorrowerContact := args[1]
+	Purpose := args[2]
+	LoanAmount, err := strconv.ParseInt(args[3], 10, 64)
+	InterestRate, err := strconv.ParseInt(args[4], 10, 64)
+	LeadBankCharge, err := strconv.ParseInt(args[5], 10, 64)
+	ProcessingFees, err := strconv.ParseInt(args[6], 10, 64)
+	Tranch1Date, err := strconv.ParseInt(args[7], 10, 64)
+	Tranch1Amount, err := strconv.ParseInt(args[8], 10, 64)
+	Tranch1Comment := args[9]
+	Tranch2Date, err := strconv.ParseInt(args[10], 10, 64)
+	Tranch2Amount, err := strconv.ParseInt(args[12], 10, 64)
+	Tranch2Comment := args[12]
+	PrepaymentCharges, err := strconv.ParseInt(args[13], 10, 64)
+	PhysicalInspection := args[14]
+	Lender1Name := args[15]
+	Lender1Share, err := strconv.ParseInt(args[16], 10, 64)
+	Lender1SharePercent, err := strconv.ParseInt(args[17], 10, 64)
+	Lender1EditAcceptanceStatus := args[18]
+	Lender2Name := args[19]
+	Lender2Share, err := strconv.ParseInt(args[20], 10, 64)
+	Lender2SharePercent, err := strconv.ParseInt(args[21], 10, 64)
+	Lender2EditAcceptanceStatus := args[22]
+	Lender3Name := args[23]
+	Lender3Share, err := strconv.ParseInt(args[24], 10, 64)
+	Lender3SharePercent, err := strconv.ParseInt(args[25], 10, 64)
+	Lender3EditAcceptanceStatus := args[26]
+	Lender4Name := args[27]
+	Lender4Share, err := strconv.ParseInt(args[28], 10, 64)
+	Lender4SharePercent, err := strconv.ParseInt(args[29], 10, 64)
+	Lender4EditAcceptanceStatus := args[30]
+	Penalty30Days, err := strconv.ParseInt(args[31], 10, 64)
+	Penalty45Days, err := strconv.ParseInt(args[32], 10, 64)
+	Penalty90Days, err := strconv.ParseInt(args[33], 10, 64)
+	PaySchedule1RecordDate, err := strconv.ParseInt(args[34], 10, 64)
+	PaySchedule1Amount, err := strconv.ParseInt(args[35], 10, 64)
+	PaySchedule1Status := args[36]
+	PaySchedule2RecordDate, err := strconv.ParseInt(args[37], 10, 64)
+	PaySchedule2Amount, err := strconv.ParseInt(args[38], 10, 64)
+	PaySchedule2Status := args[39]
+	PaySchedule3RecordDate, err := strconv.ParseInt(args[40], 10, 64)
+	PaySchedule3Amount, err := strconv.ParseInt(args[41], 10, 64)
+	PaySchedule3Status := args[42]
+	PaySchedule4RecordDate, err := strconv.ParseInt(args[43], 10, 64)
+	PaySchedule4Amount, err := strconv.ParseInt(args[44], 10, 64)
+	PaySchedule4Status := args[45]
+	PaySchedule5RecordDate, err := strconv.ParseInt(args[46], 10, 64)
+	PaySchedule5Amount, err := strconv.ParseInt(args[47], 10, 64)
+	PaySchedule5Status := args[48]
+	AgreementFreeFlow := args[49]
+	ContractStatus := args[50]
+	Doc1 := args[51]
+	Doc2 := args[52]
+	Doc3 := args[53]
+
+	var columns []*shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: Borrower}}
+	col2 := shim.Column{Value: &shim.Column_String_{String_: BorrowerContact}}
+	col3 := shim.Column{Value: &shim.Column_String_{String_: Purpose}}
+	col4 := shim.Column{Value: &shim.Column_Int64{Int64: LoanAmount                  }}
+	col5 := shim.Column{Value: &shim.Column_Int64{Int64: InterestRate                }}
+	col6 := shim.Column{Value: &shim.Column_Int64{Int64: LeadBankCharge              }}
+	col7 := shim.Column{Value: &shim.Column_Int64{Int64: ProcessingFees              }}
+	col8 := shim.Column{Value: &shim.Column_Int64{Int64: Tranch1Date                 }}
+	col9 := shim.Column{Value: &shim.Column_Int64{Int64: Tranch1Amount               }}
+	col10 := shim.Column{Value: &shim.Column_String_{String_: Tranch1Comment              }}
+	col11 := shim.Column{Value: &shim.Column_Int64{Int64: Tranch2Date                 }}
+	col12 := shim.Column{Value: &shim.Column_Int64{Int64: Tranch2Amount               }}
+	col13 := shim.Column{Value: &shim.Column_String_{String_: Tranch2Comment              }}
+	col14 := shim.Column{Value: &shim.Column_Int64{Int64: PrepaymentCharges           }}
+	col15 := shim.Column{Value: &shim.Column_String_{String_: PhysicalInspection          }}
+	col16 := shim.Column{Value: &shim.Column_String_{String_: Lender1Name                 }}
+	col17 := shim.Column{Value: &shim.Column_Int64{Int64: Lender1Share                }}
+	col18 := shim.Column{Value: &shim.Column_Int64{Int64: Lender1SharePercent         }}
+	col19 := shim.Column{Value: &shim.Column_String_{String_: Lender1EditAcceptanceStatus }}
+	col20 := shim.Column{Value: &shim.Column_String_{String_: Lender2Name                 }}
+	col21 := shim.Column{Value: &shim.Column_Int64{Int64: Lender2Share                }}
+	col22 := shim.Column{Value: &shim.Column_Int64{Int64: Lender2SharePercent         }}
+	col23 := shim.Column{Value: &shim.Column_String_{String_: Lender2EditAcceptanceStatus }}
+	col24 := shim.Column{Value: &shim.Column_String_{String_: Lender3Name                 }}
+	col25 := shim.Column{Value: &shim.Column_Int64{Int64: Lender3Share                }}
+	col26 := shim.Column{Value: &shim.Column_Int64{Int64: Lender3SharePercent         }}
+	col27 := shim.Column{Value: &shim.Column_String_{String_: Lender3EditAcceptanceStatus }}
+	col28 := shim.Column{Value: &shim.Column_String_{String_: Lender4Name                 }}
+	col29 := shim.Column{Value: &shim.Column_Int64{Int64: Lender4Share                }}
+	col30 := shim.Column{Value: &shim.Column_Int64{Int64: Lender4SharePercent         }}
+	col31 := shim.Column{Value: &shim.Column_String_{String_: Lender4EditAcceptanceStatus }}
+	col32 := shim.Column{Value: &shim.Column_Int64{Int64: Penalty30Days               }}
+	col33 := shim.Column{Value: &shim.Column_Int64{Int64: Penalty45Days               }}
+	col34 := shim.Column{Value: &shim.Column_Int64{Int64: Penalty90Days               }}
+	col35 := shim.Column{Value: &shim.Column_Int64{Int64: PaySchedule1RecordDate      }}
+	col36 := shim.Column{Value: &shim.Column_Int64{Int64: PaySchedule1Amount          }}
+	col37 := shim.Column{Value: &shim.Column_String_{String_: PaySchedule1Status          }}
+	col38 := shim.Column{Value: &shim.Column_Int64{Int64: PaySchedule2RecordDate      }}
+	col39 := shim.Column{Value: &shim.Column_Int64{Int64: PaySchedule2Amount          }}
+	col40 := shim.Column{Value: &shim.Column_String_{String_: PaySchedule2Status          }}
+	col41 := shim.Column{Value: &shim.Column_Int64{Int64: PaySchedule3RecordDate      }}
+	col42 := shim.Column{Value: &shim.Column_Int64{Int64: PaySchedule3Amount          }}
+	col43 := shim.Column{Value: &shim.Column_String_{String_: PaySchedule3Status          }}
+	col44 := shim.Column{Value: &shim.Column_Int64{Int64: PaySchedule4RecordDate      }}
+	col45 := shim.Column{Value: &shim.Column_Int64{Int64: PaySchedule4Amount          }}
+	col46 := shim.Column{Value: &shim.Column_String_{String_: PaySchedule4Status          }}
+	col47 := shim.Column{Value: &shim.Column_Int64{Int64: PaySchedule5RecordDate      }}
+	col48 := shim.Column{Value: &shim.Column_Int64{Int64: PaySchedule5Amount          }}
+	col49 := shim.Column{Value: &shim.Column_String_{String_: PaySchedule5Status          }}
+	col50 := shim.Column{Value: &shim.Column_String_{String_: AgreementFreeFlow           }}
+	col51 := shim.Column{Value: &shim.Column_String_{String_: ContractStatus              }}
+	col52 := shim.Column{Value: &shim.Column_String_{String_: Doc1                        }}
+	col53 := shim.Column{Value: &shim.Column_String_{String_: Doc2                        }}
+	col54 := shim.Column{Value: &shim.Column_String_{String_: Doc3                        }}
+
+	columns = append(columns, &col1)
+	columns = append(columns, &col2)
+	columns = append(columns, &col3)
+	columns = append(columns, &col4)
+	columns = append(columns, &col5)
+	columns = append(columns, &col6)
+	columns = append(columns, &col7)
+	columns = append(columns, &col8)
+	columns = append(columns, &col9)
+	columns = append(columns, &col10)
+	columns = append(columns, &col11)
+	columns = append(columns, &col12)
+	columns = append(columns, &col13)
+	columns = append(columns, &col14)
+	columns = append(columns, &col15)
+	columns = append(columns, &col16)
+	columns = append(columns, &col17)
+	columns = append(columns, &col18)
+	columns = append(columns, &col19)
+	columns = append(columns, &col20)
+	columns = append(columns, &col21)
+	columns = append(columns, &col22)
+	columns = append(columns, &col23)
+	columns = append(columns, &col24)
+	columns = append(columns, &col25)
+	columns = append(columns, &col26)
+	columns = append(columns, &col27)
+	columns = append(columns, &col28)
+	columns = append(columns, &col29)
+	columns = append(columns, &col30)
+	columns = append(columns, &col31)
+	columns = append(columns, &col32)
+	columns = append(columns, &col33)
+	columns = append(columns, &col34)
+	columns = append(columns, &col35)
+	columns = append(columns, &col36)
+	columns = append(columns, &col37)
+	columns = append(columns, &col38)
+	columns = append(columns, &col39)
+	columns = append(columns, &col40)
+	columns = append(columns, &col41)
+	columns = append(columns, &col42)
+	columns = append(columns, &col43)
+	columns = append(columns, &col44)
+	columns = append(columns, &col45)
+	columns = append(columns, &col46)
+	columns = append(columns, &col47)
+	columns = append(columns, &col48)
+	columns = append(columns, &col49)
+	columns = append(columns, &col50)
+	columns = append(columns, &col51)
+	columns = append(columns, &col52)
+	columns = append(columns, &col53)
+	columns = append(columns, &col54)
+
+	row := shim.Row{Columns: columns}
+	ok, err := stub.ReplaceRow("Contract", row)
+	if err != nil {
+		return nil, fmt.Errorf("Contract updation operation failed. %s", err)
+	}
+	if !ok {
+		return nil, errors.New("Contract updation operation failed. Row with given key already exists")
+	}
+
+	myLogger.Info("Contract updated. -------->")
+	return nil, nil
+}
+
 func (t *SyndicatedLoanManagement) addSuggestion(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	myLogger.Info("In add Suggestion -------->")
 	if len(args) < 6 {
@@ -642,7 +837,7 @@ func (t *SyndicatedLoanManagement) getSuggestions(stub *shim.ChaincodeStub, args
 		select {
 		case row, ok := <-rowChannel:
 			if !ok {
-				row = nil
+				rowChannel = nil
 			} else {
 				var suggestion Suggestions
 				cols := row.GetColumns()
