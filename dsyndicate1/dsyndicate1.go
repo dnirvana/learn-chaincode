@@ -148,6 +148,7 @@ func createContractTable(stub *shim.ChaincodeStub) error {
 }
 
 type AuditTrail struct {
+	Borrower  string `json:"borrower"`
 	EventType string `json:"eventtype"`
 	EventName string `json:"eventname"`
 	Date      int64  `json:"date"`
@@ -157,9 +158,8 @@ type AuditTrail struct {
 
 func createAuditTrailTable(stub *shim.ChaincodeStub) error {
 	err := stub.CreateTable("AuditTrail", []*shim.ColumnDefinition{
-		// EventType Contact/Re-Sale/Payment
+		&shim.ColumnDefinition{Name: "Borrower", Type: shim.ColumnDefinition_STRING, Key: true},
 		&shim.ColumnDefinition{Name: "EventType", Type: shim.ColumnDefinition_STRING, Key: true},
-		// Contract Draft Created / Legal Council Report Published
 		&shim.ColumnDefinition{Name: "EventName", Type: shim.ColumnDefinition_STRING, Key: false},
 		&shim.ColumnDefinition{Name: "Date", Type: shim.ColumnDefinition_INT64, Key: true},
 		&shim.ColumnDefinition{Name: "ActionBy", Type: shim.ColumnDefinition_STRING, Key: false},
@@ -169,6 +169,7 @@ func createAuditTrailTable(stub *shim.ChaincodeStub) error {
 }
 
 type Suggestions struct {
+	Borrower	string `json:"borrower"`
 	LenderName string `json:"lendername"`
 	WhichField string  `json:"whichfield"`
 	WhatValue  string  `json:"whatvalue"`
@@ -180,6 +181,7 @@ type Suggestions struct {
 func createSugesstionsTable(stub *shim.ChaincodeStub) error {
 	// Create SugesstionsTable
 	err := stub.CreateTable("Suggestions", []*shim.ColumnDefinition{
+		&shim.ColumnDefinition{Name: "Borrower", Type: shim.ColumnDefinition_STRING, Key: true},
 		&shim.ColumnDefinition{Name: "LenderName", Type: shim.ColumnDefinition_STRING, Key: true},
 		&shim.ColumnDefinition{Name: "WhichField", Type: shim.ColumnDefinition_STRING, Key: false},
 		&shim.ColumnDefinition{Name: "WhatValue", Type: shim.ColumnDefinition_STRING, Key: false},
@@ -290,12 +292,19 @@ func (t *SyndicatedLoanManagement) Init(stub *shim.ChaincodeStub, function strin
 }
 
 func (t *SyndicatedLoanManagement) Invoke(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
-
 	switch function {
 	case "createContract":
 		return t.createContract(stub, args)
+	case "addAuditTrail":
+		return t.addAuditTrail(stub, args)
 	case "addSuggesstion":
 		return t.addSuggestion(stub, args)
+	case "updateContract":
+		return t.updateContract(stub, args)
+	case "addPayment":
+		return t.addPayment(stub, args)
+	case "addPositions":
+		return t.addPositions(stub, args)
 	default:
 		return nil, errors.New("Unknown operation")
 	}
@@ -483,6 +492,45 @@ func (t *SyndicatedLoanManagement) createContract(stub *shim.ChaincodeStub, args
 	}
 
 	myLogger.Info("Contract created. -------->")
+	return nil, nil
+}
+
+func (t *SyndicatedLoanManagement) addAuditTrail(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	myLogger.Info("In add auditTrail -------->")
+	if len(args) < 6 {
+		return nil, errors.New("Add auditTrail failed. Must include 54 column values")
+	}
+	Borrower := args[0]
+	EventType := args[1]
+	EventName := args[2]
+	Date, err := strconv.ParseInt(args[3], 10, 64)
+	ActionBy := args[4]
+	NewData := args[5]
+	var columns []*shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: Borrower}}
+	col2 := shim.Column{Value: &shim.Column_String_{String_: EventType}}
+	col3 := shim.Column{Value: &shim.Column_String_{String_: EventName}}
+	col4 := shim.Column{Value: &shim.Column_Int64{Int64: Date                  }}
+	col5 := shim.Column{Value: &shim.Column_String_{String_: ActionBy              }}
+	col6 := shim.Column{Value: &shim.Column_String_{String_: NewData              }}
+
+	columns = append(columns, &col1)
+	columns = append(columns, &col2)
+	columns = append(columns, &col3)
+	columns = append(columns, &col4)
+	columns = append(columns, &col5)
+	columns = append(columns, &col6)
+
+	row := shim.Row{Columns: columns}
+	ok, err := stub.InsertRow("AuditTrail", row)
+	if err != nil {
+		return nil, fmt.Errorf("Add AuditTrail operation failed. %s", err)
+	}
+	if !ok {
+		return nil, errors.New("Add AuditTrail operation failed. Row with given key already exists")
+	}
+
+	myLogger.Info("Added AuditTrail. -------->")
 	return nil, nil
 }
 
@@ -681,25 +729,26 @@ func (t *SyndicatedLoanManagement) updateContract(stub *shim.ChaincodeStub, args
 	return nil, nil
 }
 
-func (t *SyndicatedLoanManagement) addSuggestion(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
-	myLogger.Info("In add Suggestion -------->")
+func (t *SyndicatedLoanManagement) addPayment(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	myLogger.Info("In add payment -------->")
 	if len(args) < 6 {
-		return nil, errors.New("add Suggestion failed. Must include 6 column values")
+		return nil, errors.New("add payment failed. Must include 6 column values")
 	}
-	LenderName := args[0]
-	WhichField := args[1]
-	WhatValue := args[2]
-	Action := args[3]
-	Comment := args[4]
-	Date, err := strconv.ParseInt(args[5], 10, 64)
+
+	Borrower := args[0]
+	PaymentDate, err := strconv.ParseInt(args[1],10, 64)
+	Interest, err := strconv.ParseInt(args[2],10, 64)
+	Principal, err := strconv.ParseInt(args[3],10, 64)
+	Penalty, err := strconv.ParseInt(args[4],10, 64)
+	Fees, err := strconv.ParseInt(args[5],10, 64)
 
 	var columns []*shim.Column
-	col1 := shim.Column{Value: &shim.Column_String_{String_: LenderName}}
-	col2 := shim.Column{Value: &shim.Column_String_{String_: WhichField}}
-	col3 := shim.Column{Value: &shim.Column_String_{String_: WhatValue}}
-	col4 := shim.Column{Value: &shim.Column_String_{String_: Action }}
-	col5 := shim.Column{Value: &shim.Column_String_{String_: Comment  }}
-	col6 := shim.Column{Value: &shim.Column_Int64{Int64: Date}}
+	col1 := shim.Column{Value: &shim.Column_String_{String_: Borrower}}
+	col2 := shim.Column{Value: &shim.Column_Int64{Int64: PaymentDate}}
+	col3 := shim.Column{Value: &shim.Column_Int64{Int64: Interest}}
+	col4 := shim.Column{Value: &shim.Column_Int64{Int64: Principal }}
+	col5 := shim.Column{Value: &shim.Column_Int64{Int64: Penalty  }}
+	col6 := shim.Column{Value: &shim.Column_Int64{Int64: Fees}}
 
 	columns = append(columns, &col1)
 	columns = append(columns, &col2)
@@ -707,6 +756,50 @@ func (t *SyndicatedLoanManagement) addSuggestion(stub *shim.ChaincodeStub, args 
 	columns = append(columns, &col4)
 	columns = append(columns, &col5)
 	columns = append(columns, &col6)
+
+
+	row := shim.Row{Columns: columns}
+	ok, err := stub.InsertRow("Payments", row)
+	if err != nil {
+		return nil, fmt.Errorf("Add Payments operation failed. %s", err)
+	}
+	if !ok {
+		return nil, errors.New("Add Payments operation failed. Row with given key already exists")
+	}
+
+	myLogger.Info("Payments created. -------->")
+	return nil, nil
+}
+
+func (t *SyndicatedLoanManagement) addSuggestion(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	myLogger.Info("In add Suggestion -------->")
+	if len(args) < 7 {
+		return nil, errors.New("add Suggestion failed. Must include 6 column values")
+	}
+	Borrower := args[0]
+	LenderName := args[1]
+	WhichField := args[2]
+	WhatValue := args[3]
+	Action := args[4]
+	Comment := args[5]
+	Date, err := strconv.ParseInt(args[6],10, 64)
+
+	var columns []*shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: Borrower}}
+	col2 := shim.Column{Value: &shim.Column_String_{String_: LenderName}}
+	col3 := shim.Column{Value: &shim.Column_String_{String_: WhichField}}
+	col4 := shim.Column{Value: &shim.Column_String_{String_: WhatValue}}
+	col5 := shim.Column{Value: &shim.Column_String_{String_: Action }}
+	col6 := shim.Column{Value: &shim.Column_String_{String_: Comment  }}
+	col7 := shim.Column{Value: &shim.Column_Int64{Int64: Date}}
+
+	columns = append(columns, &col1)
+	columns = append(columns, &col2)
+	columns = append(columns, &col3)
+	columns = append(columns, &col4)
+	columns = append(columns, &col5)
+	columns = append(columns, &col6)
+	columns = append(columns, &col7)
 
 	row := shim.Row{Columns: columns}
 	ok, err := stub.InsertRow("Suggestions", row)
@@ -721,12 +814,76 @@ func (t *SyndicatedLoanManagement) addSuggestion(stub *shim.ChaincodeStub, args 
 	return nil, nil
 }
 
+func (t *SyndicatedLoanManagement) addPositions(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	myLogger.Info("In add postions -------->")
+	if len(args) < 11 {
+		return nil, errors.New("add postions failed. Must include 11 column values")
+	}
+
+	Borrower := args[0]
+	RecordDate, err := strconv.ParseInt(args[1],10, 64)
+	Lender1Name := args[2]
+	Lender1Position, err := strconv.ParseInt(args[3],10, 64)
+	Lender2Name := args[4]
+	Lender2Position, err := strconv.ParseInt(args[5],10, 64)
+	Lender3Name := args[6]
+	Lender3Position, err := strconv.ParseInt(args[7],10, 64)
+	Lender4Name := args[8]
+	Lender4Position, err := strconv.ParseInt(args[9],10, 64)
+	ContractState := args[10]
+
+	var columns []*shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: Borrower}}
+	col2 := shim.Column{Value: &shim.Column_Int64{Int64: RecordDate}}
+	col3 := shim.Column{Value: &shim.Column_String_{String_: Lender1Name}}
+	col4 := shim.Column{Value: &shim.Column_Int64{Int64: Lender1Position}}
+	col5 := shim.Column{Value: &shim.Column_String_{String_: Lender2Name}}
+	col6 := shim.Column{Value: &shim.Column_Int64{Int64: Lender2Position}}
+	col7 := shim.Column{Value: &shim.Column_String_{String_: Lender3Name}}
+	col8 := shim.Column{Value: &shim.Column_Int64{Int64: Lender3Position}}
+	col9 := shim.Column{Value: &shim.Column_String_{String_: Lender4Name}}
+	col10 := shim.Column{Value: &shim.Column_Int64{Int64: Lender4Position}}
+	col11 := shim.Column{Value: &shim.Column_String_{String_: ContractState }}
+
+
+	columns = append(columns, &col1)
+	columns = append(columns, &col2)
+	columns = append(columns, &col3)
+	columns = append(columns, &col4)
+	columns = append(columns, &col5)
+	columns = append(columns, &col6)
+	columns = append(columns, &col7)
+	columns = append(columns, &col8)
+	columns = append(columns, &col9)
+	columns = append(columns, &col10)
+	columns = append(columns, &col11)
+
+
+	row := shim.Row{Columns: columns}
+	ok, err := stub.InsertRow("Positions", row)
+	if err != nil {
+		return nil, fmt.Errorf("Add Positions operation failed. %s", err)
+	}
+	if !ok {
+		return nil, errors.New("Add Positions operation failed. Row with given key already exists")
+	}
+
+	myLogger.Info("Positions created. -------->")
+	return nil, nil
+}
+
 func (t *SyndicatedLoanManagement) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
 	switch function {
 	case "getContractDetails":
 		return t.getContractDetails(stub, args)
 	case "getSuggestions":
 		return t.getSuggestions(stub, args)
+	case "getAuditTrail":
+		return t.getAuditTrail(stub, args)
+	case "getPayment":
+		return t.getPayments(stub, args)
+	case "getPosition":
+		return t.getPositions(stub, args)
 	default:
 		return nil, errors.New("Unknown operation")
 	}
@@ -739,10 +896,10 @@ func (t *SyndicatedLoanManagement) getContractDetails(stub *shim.ChaincodeStub, 
 		return nil, errors.New("getContractDetails failed. Must include 1 key value")
 	}
 
-	borrower := args[0]
+	Borrower := args[0]
 
 	var columns []shim.Column
-	col1 := shim.Column{Value: &shim.Column_String_{String_: borrower}}
+	col1 := shim.Column{Value: &shim.Column_String_{String_: Borrower}}
 	columns = append(columns, col1)
 	myLogger.Info("Querying  Contract table-------->")
 	row, err := stub.GetRow("Contract", columns)
@@ -820,10 +977,10 @@ func (t *SyndicatedLoanManagement) getSuggestions(stub *shim.ChaincodeStub, args
 		return nil, errors.New("getSuggesstions failed. Must include 1 key value")
 	}
 
-	borrower := args[0]
+	Borrower := args[0]
 
 	var columns []shim.Column
-	col1 := shim.Column{Value: &shim.Column_String_{String_: borrower}}
+	col1 := shim.Column{Value: &shim.Column_String_{String_: Borrower}}
 	columns = append(columns, col1)
 	myLogger.Info("Querying  Suggesstions table-------->")
 	rowChannel, err := stub.GetRows("Suggestions", columns)
@@ -860,6 +1017,155 @@ func (t *SyndicatedLoanManagement) getSuggestions(stub *shim.ChaincodeStub, args
 		return nil, fmt.Errorf("getSuggestions operation failed. Error marshaling JSON: %s", err)
 	}
 	return jsonRows, nil
+}
+
+func (t *SyndicatedLoanManagement) getAuditTrail(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	myLogger.Info("In getAuditTrail --------->")
+	if len(args) < 1 {
+		return nil, errors.New("getAuditTrail failed. Must include 1 key value")
+	}
+
+	Borrower := args[0]
+
+	var columns []shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: Borrower}}
+	columns = append(columns, col1)
+	myLogger.Info("Querying  AuditTrail table-------->")
+	rowChannel, err := stub.GetRows("AuditTrail", columns)
+	if err != nil {
+		return nil, fmt.Errorf("getAuditTrail operation failed. %s", err)
+	}
+
+	var rows []AuditTrail
+
+	for {
+		select {
+		case row, ok := <-rowChannel:
+			if !ok {
+				rowChannel = nil
+			} else {
+				var auditTrail AuditTrail
+				cols := row.GetColumns()
+				auditTrail.Borrower = cols[0].GetString_()
+				auditTrail.EventType = cols[1].GetString_()
+				auditTrail.EventName = cols[2].GetString_()
+				auditTrail.Date = cols[3].GetInt64()
+				auditTrail.ActionBy = cols[4].GetString_()
+				auditTrail.NewData = cols[5].GetString_()
+
+				rows = append(rows, auditTrail);
+			}
+		}
+		if rowChannel == nil {
+			break
+		}
+	}
+	jsonRows, err := json.Marshal(rows)
+	if err != nil {
+		return nil, fmt.Errorf("getAuditTrail operation failed. Error marshaling JSON: %s", err)
+	}
+	return jsonRows, nil
+}
+
+func (t *SyndicatedLoanManagement) getPayments(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	myLogger.Info("In getPayments --------->")
+	if len(args) < 1 {
+		return nil, errors.New("getPayments failed. Must include 1 key value")
+	}
+
+	Borrower := args[0]
+
+	var columns []shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: Borrower}}
+	columns = append(columns, col1)
+	myLogger.Info("Querying  Payments table-------->")
+	rowChannel, err := stub.GetRows("Payments", columns)
+	if err != nil {
+		return nil, fmt.Errorf("getPayments operation failed. %s", err)
+	}
+
+	var rows []Payments
+
+	for {
+		select {
+		case row, ok := <-rowChannel:
+			if !ok {
+				rowChannel = nil
+			} else {
+				var payment Payments
+				cols := row.GetColumns()
+				payment.Borrower = cols[0].GetString_()
+				payment.PaymentDate = cols[1].GetInt64()
+				payment.Interest = cols[2].GetInt64()
+				payment.Principal = cols[3].GetInt64()
+				payment.Penalty = cols[4].GetInt64()
+				payment.Fees = cols[5].GetInt64()
+
+				rows = append(rows, payment);
+			}
+		}
+		if rowChannel == nil {
+			break
+		}
+	}
+	jsonRows, err := json.Marshal(rows)
+	if err != nil {
+		return nil, fmt.Errorf("getPayments operation failed. Error marshaling JSON: %s", err)
+	}
+	return jsonRows,nil
+}
+
+func (t *SyndicatedLoanManagement) getPositions(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+	myLogger.Info("In getPositions --------->")
+	if len(args) < 1 {
+		return nil, errors.New("getPositions failed. Must include 1 key value")
+	}
+
+	Borrower := args[0]
+
+	var columns []shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: Borrower}}
+	columns = append(columns, col1)
+	myLogger.Info("Querying  Positions table-------->")
+	rowChannel, err := stub.GetRows("Positions", columns)
+	if err != nil {
+		return nil, fmt.Errorf("getPositions operation failed. %s", err)
+	}
+
+	var rows []Positions
+
+	for {
+		select {
+		case row, ok := <-rowChannel:
+			if !ok {
+				rowChannel = nil
+			} else {
+				var position Positions
+				cols := row.GetColumns()
+				position.Borrower        = cols[0].GetString_()
+				position.RecordDate      = cols[1].GetInt64()
+				position.Lender1Name     = cols[2].GetString_()
+				position.Lender1Position = cols[3].GetInt64()
+				position.Lender2Name     = cols[4].GetString_()
+				position.Lender2Position = cols[5].GetInt64()
+				position.Lender3Name     = cols[6].GetString_()
+				position.Lender3Position = cols[7].GetInt64()
+				position.Lender4Name     = cols[8].GetString_()
+				position.Lender4Position = cols[9].GetInt64()
+				position.ContractState   = cols[10].GetString_()
+
+				rows = append(rows, position);
+			}
+		}
+		if rowChannel == nil {
+			break
+		}
+	}
+	jsonRows, err := json.Marshal(rows)
+	if err != nil {
+		return nil, fmt.Errorf("getPositions operation failed. Error marshaling JSON: %s", err)
+	}
+	return jsonRows,nil
 }
 
 func main() {
